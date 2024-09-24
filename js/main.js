@@ -46,3 +46,68 @@ async function drawCard() {
 
     return await callAPI(getApiEndpointDrawCard());
 }
+
+// Supprime les cartes de l'anien deck du DOM
+const cleanDomCardsFromPreviousDeck = () => {
+    // Récupération des cartes (class css "card")
+    document.querySelectorAll(".card")
+    // et pour chacune de ces cartes
+    .forEach(card => {
+        // Suppression du DOM
+        card.remove();
+    });
+}
+
+// Fonction de réinitilisation (demande de nouveau deck + demande de mélange de ce nouveau deck)
+async function ationReset() {
+    // Vider dans le DOM les cartes de l'ancien deck
+    cleanDomCardsFromPreviousDeck();
+
+    // Récupération d'un nouveau deck
+    const newDeckResponse = await getNewDeck();
+
+    // Récupération de l'id de ce nouveau deck dans les données reçues et mise à jour de la variable globale
+    idDeck = newDeckResponse.deck_id;
+
+    // Mélange du deck
+    await shuffleDeck();
+}
+
+// Elément HTML utiles pour évènements et pour la manipulation du DOM
+const cardsContainer = document.getElementById("cards-container");
+
+// Ajoute une carte dans le OM (dans la zone des cartes piochées) d'après l'URI de son image
+function addCardToDomByImgUri(imgUri) {
+    // Création de l'élément HTML "img", de classe CSS "card" et avec pour attribut HTML "src" l'URI reçue en argument
+    const imgCardHtmlElement = document.createElement("img");
+    imgCardHtmlElement.classList.add("card");
+    imgCardHtmlElement.src = imgUri;
+
+    // Ajout de cette image dans la zone des cartes piochées (en dernière position, dernier enfant de cardsContainer)
+    cardsContainer.append(imgCardHtmlElement);
+}
+
+// Fonction qui demande à piocher une carte, puis qui fait l'appel pour l'intéfrer dans le DOM
+async function actionDraw() {
+    // Appel à l'API pour demander au croupier de piocher une carte et de nous la renvoyer
+    const drawCardResponse = await drawCard();
+
+    console.log("drawCardResponse = ", drawCardResponse);
+
+    // Récupération de l'URI de l'image de cette carte dans les données reçues
+    const imgCardUri = drawCardResponse.cards[0].image;
+
+    // Ajout de la carte piochée dans la zone des cartes piochées
+    addCardToDomByImgUri(imgCardUri);
+}
+
+// appel d'initiliation au lancement de l'application
+ationReset();
+
+// éléments HTML utilses pour les évènements et pour la manipulation du DOM
+const actionResetButton = document.getElementById("action-reset");
+const actionDrawButton = document.getElementById("action-draw");
+
+// écoutes d'évènements sur les boutons d'action
+actionResetButton.addEventListener("click", ationReset);
+actionDrawButton.addEventListener("click", actionDraw);
